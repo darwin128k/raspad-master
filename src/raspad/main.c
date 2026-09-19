@@ -50,7 +50,8 @@ main(void)
         lh_os_net_deinit();
         return 1;
     }
-    lh_logger_info(lh_addr_of(logger), "udp %u", lh_cast_static(lh_uint_t, config.udp_port));
+    lh_logger_info(lh_addr_of(logger), "udp %u list %s", lh_cast_static(lh_uint_t, config.udp_port),
+                   config.list_path);
 
     for (;;)
     {

@@ -30,11 +30,17 @@ set(LH_BUILD_BENCH OFF CACHE BOOL "" FORCE)
 set(LH_LIBRARY_OPTION_OS ON CACHE BOOL "" FORCE)
 add_subdirectory("${RASPAD_LH_ROOT}" "${CMAKE_BINARY_DIR}/lh")
 
+add_library(cjson STATIC
+        lib/cjson/cJSON.c
+)
+target_include_directories(cjson PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/lib/cjson")
+
 set(RASPAD_MASTER_LIB_SOURCES
         src/raspad/master/config.c
         src/raspad/master/registry.c
         src/raspad/master/query.c
         src/raspad/master/flood.c
+        src/raspad/master/list_file.c
         src/raspad/master/udp.c
         src/raspad/master.c
 )
@@ -47,6 +53,7 @@ target_include_directories(raspad_master
 target_link_libraries(raspad_master
         PUBLIC
         lh
+        cjson
 )
 
 add_executable(raspad-master src/raspad/main.c)

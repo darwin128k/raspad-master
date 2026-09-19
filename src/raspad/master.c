@@ -10,6 +10,7 @@
 #include <lh/numeric/types.h>
 #include <lh/os/clock.h>
 #include <lh/util/addr.h>
+#include <raspad/master/list_file.h>
 #include <raspad/master/udp.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
@@ -33,12 +34,17 @@ raspad_master_init(raspad_master_t *self, const raspad_master_config_t *config, 
     raspad_master_flood_init(lh_addr_of(self->flood), config->flood_max_hits, config->flood_window_ms,
                              1024U);
     self->logger = logger;
+    self->list_mtime = 0;
     lh_os_net_socket_init(lh_addr_of(self->udp));
-    if (config->seed_port != 0)
+    if (raspad_master_list_file_load(self->config.list_path, lh_addr_of(self->registry)))
     {
-        lh_net_ip4_socket_addr_t seed =
-            lh_net_ip4_socket_addr_make(lh_addr_of(self->config.seed_ip), config->seed_port);
-        (void)raspad_master_registry_add(lh_addr_of(self->registry), lh_addr_of(seed));
+        self->list_mtime = raspad_master_list_file_mtime(self->config.list_path);
+        if (lh_null_ne(logger))
+        {
+            lh_logger_info(logger, "list %s count=%u", self->config.list_path,
+                           lh_cast_static(lh_uint_t, raspad_master_registry_get_size(
+                                                         lh_addr_of(self->registry))));
+        }
     }
 }
 
@@ -102,6 +108,36 @@ raspad_master_on_udp(raspad_master_t *self)
                              lh_addr_of(self->config));
 }
 
+static void
+raspad_master_reload_list(raspad_master_t *self)
+{
+    lh_s64_t mtime;
+
+    mtime = raspad_master_list_file_mtime(self->config.list_path);
+    if (mtime == 0 || mtime == self->list_mtime)
+    {
+        return;
+    }
+    if (raspad_master_list_file_load(self->config.list_path, lh_addr_of(self->registry)))
+    {
+        self->list_mtime = mtime;
+        if (lh_null_ne(self->logger))
+        {
+            lh_logger_info(self->logger, "list reload count=%u",
+                           lh_cast_static(lh_uint_t, raspad_master_registry_get_size(
+                                                         lh_addr_of(self->registry))));
+        }
+    }
+    else
+    {
+        self->list_mtime = mtime;
+        if (lh_null_ne(self->logger))
+        {
+            lh_logger_info(self->logger, "list reload fail %s", self->config.list_path);
+        }
+    }
+}
+
 lh_bool_t
 raspad_master_poll(raspad_master_t *self, lh_u64_t timeout_ms)
 {
@@ -111,6 +147,7 @@ raspad_master_poll(raspad_master_t *self, lh_u64_t timeout_ms)
     lh_int_t n;
 
     lh_assert_runtime_ref(self);
+    raspad_master_reload_list(self);
 
     udp_fd = raspad_master_native(lh_addr_of(self->udp));
     FD_ZERO(&read_set);

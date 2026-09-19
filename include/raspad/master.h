@@ -9,6 +9,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/logger.h>
+#include <lh/numeric/fixed/types.h>
 #include <lh/os/net/socket.h>
 #include <raspad/master/config.h>
 #include <raspad/master/flood.h>
@@ -26,6 +27,7 @@ struct raspad_master
     raspad_master_flood_t flood;
     lh_logger_t *logger;
     lh_os_net_socket_t udp;
+    lh_s64_t list_mtime;
 };
 typedef struct raspad_master raspad_master_t;
 

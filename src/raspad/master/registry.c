@@ -70,6 +70,13 @@ raspad_master_registry_add(raspad_master_registry_t *self, const lh_net_ip4_sock
     return lh_bool_true;
 }
 
+void
+raspad_master_registry_clear(raspad_master_registry_t *self)
+{
+    lh_assert_runtime_ref(self);
+    lh_vector_clear(lh_addr_of(self->servers));
+}
+
 lh_bool_t
 raspad_master_registry_remove(raspad_master_registry_t *self, const lh_net_ip4_socket_addr_t *addr)
 {

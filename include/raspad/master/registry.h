@@ -38,6 +38,12 @@ lh_usize_t
 raspad_master_registry_get_size(const raspad_master_registry_t *self);
 
 /**
+ * @brief Drop every entry. Capacity is kept.
+ */
+void
+raspad_master_registry_clear(raspad_master_registry_t *self);
+
+/**
  * @brief Insert @p addr if it is not already present.
  *
  * @return ::lh_bool_true if the list contains @p addr afterwards (added or
