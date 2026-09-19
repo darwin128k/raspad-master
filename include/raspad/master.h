@@ -1,6 +1,6 @@
 /**
  * @file master.h
- * @brief Process-facing master: registry + flood + UDP 27010 + HTTP REST.
+ * @brief Process-facing master: registry + flood + UDP 27010 (read-only).
  */
 
 #ifndef RASPAD_MASTER_H
@@ -17,7 +17,7 @@
 /**
  * @struct raspad_master
  * @typedef raspad_master_t
- * @brief Bound sockets plus the shared server list.
+ * @brief Bound UDP socket plus the shared server list.
  */
 struct raspad_master
 {
@@ -26,7 +26,6 @@ struct raspad_master
     raspad_master_flood_t flood;
     lh_logger_t *logger;
     lh_os_net_socket_t udp;
-    lh_os_net_socket_t http;
 };
 typedef struct raspad_master raspad_master_t;
 
@@ -40,7 +39,7 @@ void
 raspad_master_deinit(raspad_master_t *self);
 
 /**
- * @brief Bind UDP + TCP listen sockets from @p self's config.
+ * @brief Bind the UDP query socket from @p self's config.
  */
 lh_bool_t
 raspad_master_bind(raspad_master_t *self);

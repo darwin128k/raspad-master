@@ -19,7 +19,6 @@ set(RASPAD_TEST_SOURCES
         src/raspad/master/registry.cpp
         src/raspad/master/query.cpp
         src/raspad/master/flood.cpp
-        src/raspad/master/http.cpp
         src/raspad/master/udp.cpp
 )
 

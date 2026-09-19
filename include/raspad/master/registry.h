@@ -2,7 +2,7 @@
  * @file registry.h
  * @brief In-memory list of registered game servers (IP + port).
  *
- * No sockets, no JSON, no protocol. UDP query and REST both read this.
+ * No sockets, no protocol. The UDP query handler reads this.
  */
 
 #ifndef RASPAD_MASTER_REGISTRY_H

@@ -1,9 +1,9 @@
 /**
  * @file config.h
- * @brief Ports, bind address, and flood/size limits for the master process.
+ * @brief Bind, flood/size limits, and the baked read-only server list seed.
  *
- * Application policy, not lh. Defaults match GoldSrc/CS master (UDP 27010)
- * and a non-privileged HTTP port for the REST list.
+ * Application policy, not lh. UDP 27010 is the GoldSrc/CS master query port.
+ * There is no HTTP and no heartbeat: the list is seeded at process start.
  */
 
 #ifndef RASPAD_MASTER_CONFIG_H
@@ -22,10 +22,10 @@
 #define RASPAD_MASTER_UDP_PORT 27010U
 
 /**
- * @def RASPAD_MASTER_HTTP_PORT
- * @brief Default REST listen port (HTTP; HTTPS is later).
+ * @def RASPAD_MASTER_SEED_PORT
+ * @brief Baked game-server port listed on startup. `0` skips the seed.
  */
-#define RASPAD_MASTER_HTTP_PORT 8080U
+#define RASPAD_MASTER_SEED_PORT 27015U
 
 /**
  * @struct raspad_master_config
@@ -36,11 +36,11 @@ struct raspad_master_config
 {
     lh_net_ip4_t bind_ip;
     lh_net_port_t udp_port;
-    lh_net_port_t http_port;
+    lh_net_ip4_t seed_ip;
+    lh_net_port_t seed_port;
     lh_u32_t flood_max_hits;
     lh_u64_t flood_window_ms;
     lh_usize_t max_udp_bytes;
-    lh_usize_t max_http_bytes;
     lh_usize_t max_servers;
 };
 typedef struct raspad_master_config raspad_master_config_t;
@@ -48,7 +48,7 @@ typedef struct raspad_master_config raspad_master_config_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Default config: `0.0.0.0:27010` UDP, `:8080` HTTP, 30 hits / 1s.
+ * @brief Default: UDP `0.0.0.0:27010`, seed `37.230.210.218:27015`, 30 hits / 1s.
  */
 raspad_master_config_t
 raspad_master_config_make_default(void);
