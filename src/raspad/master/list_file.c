@@ -7,35 +7,26 @@
 #include <lh/net/port.h>
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/null.h>
+#include <lh/os/fs/path.h>
 #include <lh/str/ptr.h>
 #include <lh/util/addr.h>
-#include <stdio.h>
-#include <sys/stat.h>
-
-#if defined(_MSC_VER)
-#    define RASPAD_STAT _stat
-#    define RASPAD_STAT_T struct _stat
-#else
-#    define RASPAD_STAT stat
-#    define RASPAD_STAT_T struct stat
-#endif
 
 #define RASPAD_MASTER_LIST_FILE_MAX 65536U
 
 lh_s64_t
 raspad_master_list_file_mtime(const lh_char_t *path)
 {
-    RASPAD_STAT_T info;
+    lh_s64_t mtime;
 
     if (lh_null_eq(path) || path[0] == '\0')
     {
         return 0;
     }
-    if (RASPAD_STAT(path, &info) != 0)
+    if (!lh_os_fs_path_mtime(path, lh_addr_of(mtime)))
     {
         return 0;
     }
-    return lh_cast_static(lh_s64_t, info.st_mtime);
+    return mtime;
 }
 
 static lh_bool_t
@@ -76,10 +67,8 @@ raspad_master_list_file_add_item(raspad_master_registry_t *registry, const cJSON
 lh_bool_t
 raspad_master_list_file_load(const lh_char_t *path, raspad_master_registry_t *registry)
 {
-    FILE *file;
     lh_char_t *text;
-    long size;
-    size_t n;
+    lh_usize_t size;
     cJSON *root;
     cJSON *servers;
     cJSON *item;
@@ -89,36 +78,18 @@ raspad_master_list_file_load(const lh_char_t *path, raspad_master_registry_t *re
     lh_assert_runtime_ref(path);
     lh_assert_runtime_ref(registry);
 
-    file = fopen(path, "rb");
-    if (file == lh_null)
-    {
-        return lh_bool_false;
-    }
-    if (fseek(file, 0, SEEK_END) != 0)
-    {
-        fclose(file);
-        return lh_bool_false;
-    }
-    size = ftell(file);
-    if (size <= 0 || size > (long)RASPAD_MASTER_LIST_FILE_MAX)
-    {
-        fclose(file);
-        return lh_bool_false;
-    }
-    if (fseek(file, 0, SEEK_SET) != 0)
-    {
-        fclose(file);
-        return lh_bool_false;
-    }
-    text = (lh_char_t *)cJSON_malloc((size_t)size + 1U);
+    text = (lh_char_t *)cJSON_malloc(RASPAD_MASTER_LIST_FILE_MAX + 1U);
     if (lh_null_eq(text))
     {
-        fclose(file);
         return lh_bool_false;
     }
-    n = fread(text, 1, (size_t)size, file);
-    fclose(file);
-    text[n] = '\0';
+    if (!lh_os_fs_path_read(path, text, RASPAD_MASTER_LIST_FILE_MAX, lh_addr_of(size)) ||
+        size == 0U)
+    {
+        cJSON_free(text);
+        return lh_bool_false;
+    }
+    text[size] = '\0';
     root = cJSON_Parse(text);
     cJSON_free(text);
     if (lh_null_eq(root))

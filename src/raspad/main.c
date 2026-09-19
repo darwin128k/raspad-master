@@ -1,24 +1,16 @@
 #include <lh/cast/static.h>
 #include <lh/char.h>
-#include <lh/compiler/os.h>
 #include <lh/logger.h>
 #include <lh/memory.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
+#include <lh/os/fs/path.h>
 #include <lh/os/net.h>
 #include <lh/str/format/text.h>
 #include <lh/util/addr.h>
 #include <raspad/master.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <string.h>
-
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-#    define WIN32_LEAN_AND_MEAN
-#    include <windows.h>
-#else
-#    include <unistd.h>
-#endif
 
 static lh_ssize_t
 raspad_master_log_stderr(lh_ptr context, lh_logger_level_t level, lh_str_cptr fmt, va_list args)
@@ -42,37 +34,19 @@ raspad_master_log_stderr(lh_ptr context, lh_logger_level_t level, lh_str_cptr fm
 static void
 raspad_master_fill_list_path(lh_char_t *out, lh_usize_t out_size)
 {
-    lh_char_t exe[512];
-    lh_char_t *slash;
+    lh_char_t dir[512];
 
     lh_memory_set(out, out_size, 0);
-    lh_memory_set(exe, sizeof(exe), 0);
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    if (GetModuleFileNameA(lh_null, exe, (DWORD)sizeof(exe)) == 0)
+    if (!lh_os_fs_path_exe_dir(dir, sizeof(dir)))
     {
         lh_memory_copy(out, out_size, RASPAD_MASTER_LIST_PATH, sizeof(RASPAD_MASTER_LIST_PATH));
         return;
     }
-    slash = strrchr(exe, '\\');
-    if (slash == lh_null)
+    if (!lh_os_fs_path_join(out, out_size, dir, RASPAD_MASTER_LIST_PATH))
     {
-        slash = strrchr(exe, '/');
-    }
-#else
-    if (readlink("/proc/self/exe", exe, sizeof(exe) - 1U) <= 0)
-    {
+        lh_memory_set(out, out_size, 0);
         lh_memory_copy(out, out_size, RASPAD_MASTER_LIST_PATH, sizeof(RASPAD_MASTER_LIST_PATH));
-        return;
     }
-    slash = strrchr(exe, '/');
-#endif
-    if (slash == lh_null)
-    {
-        lh_memory_copy(out, out_size, RASPAD_MASTER_LIST_PATH, sizeof(RASPAD_MASTER_LIST_PATH));
-        return;
-    }
-    slash[1] = '\0';
-    (void)lh_str_ptr_format_text(out, out_size, "%s%s", exe, RASPAD_MASTER_LIST_PATH);
 }
 
 int

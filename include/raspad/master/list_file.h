@@ -26,7 +26,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * On parse/read failure the registry is left unchanged.
  *
- * @param path     File path (typically `servers.json` in the working directory).
+ * @param path     File path (typically `servers.json` beside the executable).
  * @param registry Destination; cleared only after a successful parse.
  * @return ::lh_bool_true if the file was read and applied.
  */
