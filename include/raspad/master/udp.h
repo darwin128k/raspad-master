@@ -10,6 +10,7 @@
 
 #include <lh/compiler/extern/c.h>
 #include <lh/io/dgram.h>
+#include <lh/logger.h>
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/ptr.h>
@@ -34,12 +35,13 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param peer     Source address for the reply.
  * @param now_ms   Monotonic milliseconds for the flood window.
  * @param config   Size and flood limits.
+ * @param logger   Optional; query/drop lines. May be null.
  */
 void
 raspad_master_udp_handle(lh_io_dgram_t *dgram, raspad_master_registry_t *registry,
                          raspad_master_flood_t *flood, const lh_ptr buf, lh_usize_t size,
                          const lh_net_ip4_socket_addr_t *peer, lh_u64_t now_ms,
-                         const raspad_master_config_t *config);
+                         const raspad_master_config_t *config, lh_logger_t *logger);
 
 LH_COMPILER_EXTERN_C_END
 

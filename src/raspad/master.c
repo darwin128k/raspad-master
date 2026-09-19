@@ -41,7 +41,7 @@ raspad_master_init(raspad_master_t *self, const raspad_master_config_t *config, 
         self->list_mtime = raspad_master_list_file_mtime(self->config.list_path);
         if (lh_null_ne(logger))
         {
-            lh_logger_info(logger, "list %s count=%u", self->config.list_path,
+            lh_logger_info(logger, "list loaded file %s servers=%u", self->config.list_path,
                            lh_cast_static(lh_uint_t, raspad_master_registry_get_size(
                                                          lh_addr_of(self->registry))));
         }
@@ -99,13 +99,9 @@ raspad_master_on_udp(raspad_master_t *self)
     {
         return;
     }
-    if (lh_null_ne(self->logger))
-    {
-        lh_logger_info(self->logger, "udp query bytes=%u", lh_cast_static(lh_uint_t, n));
-    }
     raspad_master_udp_handle(lh_addr_of(dgram), lh_addr_of(self->registry), lh_addr_of(self->flood),
                              buf, lh_cast_static(lh_usize_t, n), lh_addr_of(peer), lh_os_clock_ms(),
-                             lh_addr_of(self->config));
+                             lh_addr_of(self->config), self->logger);
 }
 
 static void
@@ -123,7 +119,7 @@ raspad_master_reload_list(raspad_master_t *self)
         self->list_mtime = mtime;
         if (lh_null_ne(self->logger))
         {
-            lh_logger_info(self->logger, "list reload count=%u",
+            lh_logger_info(self->logger, "list reloaded file %s servers=%u", self->config.list_path,
                            lh_cast_static(lh_uint_t, raspad_master_registry_get_size(
                                                          lh_addr_of(self->registry))));
         }
@@ -133,7 +129,7 @@ raspad_master_reload_list(raspad_master_t *self)
         self->list_mtime = mtime;
         if (lh_null_ne(self->logger))
         {
-            lh_logger_info(self->logger, "list reload fail %s", self->config.list_path);
+            lh_logger_error(self->logger, "list reload failed file %s", self->config.list_path);
         }
     }
 }

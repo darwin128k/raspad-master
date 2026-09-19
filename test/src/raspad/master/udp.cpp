@@ -73,7 +73,7 @@ TEST_F(RaspadMasterUdpTest, query_returns_registered_server)
     lh_ssize_t n = lh_io_dgram_recv(&server_dgram, incoming, sizeof(incoming), &peer);
     ASSERT_GT(n, 0);
     raspad_master_udp_handle(&server_dgram, &registry, &flood, incoming, static_cast<lh_usize_t>(n),
-                             &peer, 0, &config);
+                             &peer, 0, &config, nullptr);
 
     unsigned char reply[256] = {};
     lh_net_ip4_socket_addr_t from{};
