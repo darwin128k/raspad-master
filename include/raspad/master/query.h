@@ -36,6 +36,10 @@ LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief True when @p buf is a list query (starts with ::RASPAD_MASTER_QUERY_OPCODE).
+ *
+ * @param buf  Datagram bytes.
+ * @param size Datagram length.
+ * @return ::lh_bool_true if the first byte is `'1'`.
  */
 lh_bool_t
 raspad_master_query_is_list(const lh_ptr buf, lh_usize_t size);
@@ -46,6 +50,10 @@ raspad_master_query_is_list(const lh_ptr buf, lh_usize_t size);
  * Truncates the list if @p out_size cannot hold every entry plus terminator.
  * Always ends with `0.0.0.0:0` when there is room for the terminator.
  *
+ * @param out      Destination buffer.
+ * @param out_size Capacity of @p out.
+ * @param servers  May be null when @p count is `0`.
+ * @param count    Number of entries in @p servers.
  * @return Bytes written, or 0 if @p out_size is too small for the header
  *         and terminator.
  */
@@ -57,6 +65,10 @@ raspad_master_query_write_reply(lh_ptr out, lh_usize_t out_size,
  * @brief Read one `IP:port` at @p index from a reply written by
  *        ::raspad_master_query_write_reply.
  *
+ * @param buf   Reply bytes.
+ * @param size  Reply length.
+ * @param index `0` is the first server after the header.
+ * @param out   Destination.
  * @return ::lh_bool_true when the slot is a real server (not the terminator).
  */
 lh_bool_t

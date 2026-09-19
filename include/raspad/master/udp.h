@@ -24,6 +24,16 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Handle one UDP datagram from @p peer.
  *
  * Drops oversized packets, over-budget peers, and non-query opcodes.
+ * A list query is answered from @p registry (snapshot, then send).
+ *
+ * @param dgram    Bound datagram (send replies here).
+ * @param registry Server list.
+ * @param flood    Per-IP budget.
+ * @param buf      Received bytes.
+ * @param size     Received length.
+ * @param peer     Source address for the reply.
+ * @param now_ms   Monotonic milliseconds for the flood window.
+ * @param config   Size and flood limits.
  */
 void
 raspad_master_udp_handle(lh_io_dgram_t *dgram, raspad_master_registry_t *registry,
