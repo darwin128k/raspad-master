@@ -1,22 +1,19 @@
 #include <lh/cast/static.h>
 #include <lh/char.h>
-#include <lh/compiler/os.h>
-#include <lh/date.h>
 #include <lh/datetime.h>
 #include <lh/logger.h>
 #include <lh/memory.h>
 #include <lh/net/ip.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
+#include <lh/os/datetime.h>
 #include <lh/os/fs/path.h>
 #include <lh/os/net.h>
 #include <lh/str/format/text.h>
-#include <lh/time.h>
 #include <lh/util/addr.h>
 #include <raspad/master.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <time.h>
 
 static lh_str_cptr
 raspad_master_log_level_name(lh_logger_level_t level)
@@ -47,39 +44,13 @@ raspad_master_log_level_name(lh_logger_level_t level)
 static lh_usize_t
 raspad_master_log_stamp(lh_str_ptr out, lh_usize_t out_size)
 {
-    time_t now;
-    struct tm local;
-    lh_date_t date;
-    lh_time_t tod;
     lh_datetime_t stamp;
     lh_usize_t n;
-    lh_time_second_t sec;
 
-    now = time(lh_null);
-    if (now == lh_cast_static(time_t, -1))
+    if (!lh_os_datetime_now(lh_addr_of(stamp)))
     {
         return 0;
     }
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    if (localtime_s(lh_addr_of(local), lh_addr_of(now)) != 0)
-    {
-        return 0;
-    }
-#else
-    if (lh_null_eq(localtime_r(lh_addr_of(now), lh_addr_of(local))))
-    {
-        return 0;
-    }
-#endif
-    lh_date_set(lh_addr_of(date), lh_cast_static(lh_date_year_t, local.tm_year + 1900),
-                lh_cast_static(lh_date_month_t, local.tm_mon + 1),
-                lh_cast_static(lh_date_day_t, local.tm_mday));
-    sec = local.tm_sec > (int)LH_TIME_SECOND_MAX
-              ? LH_TIME_SECOND_MAX
-              : lh_cast_static(lh_time_second_t, local.tm_sec);
-    lh_time_set(lh_addr_of(tod), lh_cast_static(lh_time_hour_t, local.tm_hour),
-                lh_cast_static(lh_time_minute_t, local.tm_min), sec);
-    lh_datetime_set(lh_addr_of(stamp), lh_addr_of(date), lh_addr_of(tod));
     n = lh_datetime_format(lh_addr_of(stamp), out, out_size);
     if (n == 0 || n >= out_size)
     {
