@@ -58,6 +58,11 @@ target_link_libraries(raspad_master
 
 add_executable(raspad-master src/raspad/main.c)
 target_link_libraries(raspad-master PRIVATE raspad_master)
+add_custom_command(TARGET raspad-master POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/servers.json"
+        "$<TARGET_FILE_DIR:raspad-master>/servers.json"
+)
 
 if (RASPAD_MASTER_BUILD_TESTS)
     enable_testing()

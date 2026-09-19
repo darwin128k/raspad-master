@@ -3,7 +3,8 @@
  * @brief Bind, flood/size limits, and path to the hand-edited server list.
  *
  * Application policy, not lh. UDP 27010 is the GoldSrc/CS master query port.
- * The list comes from `servers.json` (edit and save; no rebuild).
+ * The list comes from `servers.json` beside the executable (edit and save;
+ * no rebuild).
  */
 
 #ifndef RASPAD_MASTER_CONFIG_H
@@ -24,7 +25,7 @@
 
 /**
  * @def RASPAD_MASTER_LIST_PATH
- * @brief Default list file, relative to the process working directory.
+ * @brief Default list file name, next to the executable (see main).
  */
 #define RASPAD_MASTER_LIST_PATH "servers.json"
 

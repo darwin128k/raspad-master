@@ -23,7 +23,8 @@ the list file stay in raspad.
 
 ## `servers.json`
 
-Working directory of the process (on the VDS: `/home/steam/raspad-master`):
+Copied next to `raspad-master` at build time. Edit **that** copy (the one
+beside the binary), save; the master reloads without a restart.
 
 ```json
 {
@@ -33,10 +34,9 @@ Working directory of the process (on the VDS: `/home/steam/raspad-master`):
 }
 ```
 
-A top-level array of the same objects is also accepted. Save the file; the
-master reloads it without a restart. A parse error keeps the last good list.
-
-The CS client never reads this file. It only speaks UDP 27010.
+A top-level array of the same objects is also accepted. A parse error keeps
+the last good list. The CS client never reads this file; it only speaks UDP
+27010.
 
 ## Build
 
