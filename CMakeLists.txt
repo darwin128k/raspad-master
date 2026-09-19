@@ -1,16 +1,19 @@
 cmake_minimum_required(VERSION 3.12)
 project(raspad-master
         DESCRIPTION "Raspad GoldSrc master + HTTP REST list"
-        LANGUAGES C CXX
+        LANGUAGES C
 )
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(RASPAD_MASTER_BUILD_TESTS "Build raspad-master tests" ON)
+if (RASPAD_MASTER_BUILD_TESTS)
+    enable_language(CXX)
+    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif ()
 
 set(RASPAD_LH_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/lib/lh" CACHE PATH "Path to the lh source tree")
 
