@@ -71,7 +71,8 @@ raspad_master_bind(raspad_master_t *self)
     {
         return lh_bool_false;
     }
-    lh_os_net_socket_set_reuse_addr(lh_addr_of(self->udp), lh_bool_true);
+    /* No SO_REUSEADDR: UDP has no TIME_WAIT to pass over, and the flag would let
+       another socket bind 27010 next to ours and read the queries. */
     if (!lh_os_net_socket_bind(lh_addr_of(self->udp), lh_addr_of(udp_addr)))
     {
         return lh_bool_false;
