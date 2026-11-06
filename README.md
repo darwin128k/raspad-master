@@ -4,15 +4,15 @@ GoldSrc / CS 1.6 master stub. The client queries **UDP 27010**; the process
 answers from an in-memory list loaded from `servers.json`. There is no HTTP
 and no heartbeat.
 
-Built on [lh](https://github.com/darwin128k/lh) (submodule `lib/lh`) and
-vendored [cJSON](https://github.com/DaveGamble/cJSON) for the list file only.
+Built on [lh](https://github.com/darwin128k/lh) (submodule `lib/lh`) alone;
+the list file is read with LH's JSON (`lh/core/web/json`).
 
 ## Layers
 
 | Piece | Role |
 |---|---|
 | `query` | Binary `0x31` / `FF FF FF FF 66 0A` codec. No sockets. |
-| `registry` | Vector of `IP:port`. No JSON. |
+| `registry` | Array of `IP:port`. No JSON. |
 | `list_file` | Read `servers.json` into the registry. |
 | `flood` | Per-IP hit window. |
 | `udp` | One datagram → optional reply via `lh_io_dgram_t`. |
