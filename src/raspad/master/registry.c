@@ -1,15 +1,15 @@
 #include <raspad/master/registry.h>
-#include <lh/assert.h>
-#include <lh/null.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
-#include <lh/util/type.h>
+#include <lh/core/assert.h>
+#include <lh/core/null.h>
+#include <lh/core/util/addr.h>
+#include <lh/core/util/ptr.h>
+#include <lh/core/util/type.h>
 
 void
 raspad_master_registry_init(raspad_master_registry_t *self, lh_usize_t max_servers)
 {
     lh_assert_runtime_ref(self);
-    lh_vector_init(lh_addr_of(self->servers), lh_type_size(lh_net_ip4_socket_addr_t));
+    lh_array_init(lh_addr_of(self->servers), lh_type_size(lh_net_ip4_socket_addr_t));
     self->max_servers = max_servers;
 }
 
@@ -17,7 +17,7 @@ void
 raspad_master_registry_deinit(raspad_master_registry_t *self)
 {
     lh_assert_runtime_ref(self);
-    lh_vector_deinit(lh_addr_of(self->servers));
+    lh_array_deinit(lh_addr_of(self->servers));
     self->max_servers = 0;
 }
 
@@ -25,7 +25,7 @@ lh_usize_t
 raspad_master_registry_get_size(const raspad_master_registry_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_vector_get_size(lh_addr_of(self->servers));
+    return lh_array_get_size(lh_addr_of(self->servers));
 }
 
 static lh_bool_t
@@ -39,7 +39,7 @@ raspad_master_registry_find(const raspad_master_registry_t *self,
     for (i = 0; i < n; ++i)
     {
         const lh_net_ip4_socket_addr_t *slot =
-            lh_ptr_ccast(lh_net_ip4_socket_addr_t, lh_vector_get_ptr(lh_addr_of(self->servers), i));
+            lh_ptr_ccast(lh_net_ip4_socket_addr_t, lh_array_get_ptr(lh_addr_of(self->servers), i));
         if (lh_net_ip4_socket_addr_equals(slot, addr))
         {
             if (lh_null_ne(index))
@@ -66,7 +66,7 @@ raspad_master_registry_add(raspad_master_registry_t *self, const lh_net_ip4_sock
     {
         return lh_bool_false;
     }
-    lh_vector_push_back(lh_addr_of(self->servers), addr);
+    lh_array_push_back(lh_addr_of(self->servers), addr);
     return lh_bool_true;
 }
 
@@ -74,7 +74,7 @@ void
 raspad_master_registry_clear(raspad_master_registry_t *self)
 {
     lh_assert_runtime_ref(self);
-    lh_vector_clear(lh_addr_of(self->servers));
+    lh_array_clear(lh_addr_of(self->servers));
 }
 
 lh_bool_t
@@ -88,7 +88,7 @@ raspad_master_registry_remove(raspad_master_registry_t *self, const lh_net_ip4_s
     {
         return lh_bool_false;
     }
-    lh_vector_erase(lh_addr_of(self->servers), index, lh_null);
+    lh_array_erase(lh_addr_of(self->servers), index, lh_null);
     return lh_bool_true;
 }
 
@@ -100,11 +100,11 @@ raspad_master_registry_get(const raspad_master_registry_t *self, lh_usize_t inde
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
-    if (!lh_vector_is_valid_index(lh_addr_of(self->servers), index))
+    if (!lh_array_is_valid_index(lh_addr_of(self->servers), index))
     {
         return lh_bool_false;
     }
-    slot = lh_ptr_ccast(lh_net_ip4_socket_addr_t, lh_vector_get_ptr(lh_addr_of(self->servers), index));
+    slot = lh_ptr_ccast(lh_net_ip4_socket_addr_t, lh_array_get_ptr(lh_addr_of(self->servers), index));
     *out = *slot;
     return lh_bool_true;
 }

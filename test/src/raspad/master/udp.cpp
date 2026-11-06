@@ -2,12 +2,12 @@
 
 #include <string>
 
-#include <lh/io/dgram.h>
-#include <lh/net/ip.h>
-#include <lh/net/socket/addr/ip4.h>
+#include <lh/core/io/dgram.h>
+#include <lh/core/net/ip.h>
+#include <lh/core/net/socket/addr/ip4.h>
 #include <lh/os/net.h>
 #include <lh/os/net/socket.h>
-#include <lh/util/addr.h>
+#include <lh/core/util/addr.h>
 #include <raspad/master/config.h>
 #include <raspad/master/flood.h>
 #include <raspad/master/query.h>
@@ -41,19 +41,23 @@ TEST_F(RaspadMasterUdpTest, query_returns_registered_server)
     raspad_master_registry_init(&registry, 8);
     raspad_master_flood_init(&flood, 30, 1000, 8);
 
-    lh_net_ip4_t game_ip = lh_net_ip4_make(192, 168, 1, 10);
-    lh_net_ip4_socket_addr_t game = lh_net_ip4_socket_addr_make(&game_ip, 27015);
+    lh_net_ip4_t game_ip;
+    lh_net_ip4_init(&game_ip, 192, 168, 1, 10);
+    lh_net_ip4_socket_addr_t game;
+    lh_net_ip4_socket_addr_init(&game, &game_ip, 27015);
     ASSERT_TRUE(raspad_master_registry_add(&registry, &game));
 
     lh_os_net_socket_t server;
     lh_os_net_socket_t client;
     lh_os_net_socket_init(&server);
     lh_os_net_socket_init(&client);
-    ASSERT_TRUE(lh_os_net_socket_open(&server, lh_os_net_socket_type_udp));
-    ASSERT_TRUE(lh_os_net_socket_open(&client, lh_os_net_socket_type_udp));
+    ASSERT_TRUE(lh_os_net_socket_open(&server, lh_os_system_net_socket_type_udp));
+    ASSERT_TRUE(lh_os_net_socket_open(&client, lh_os_system_net_socket_type_udp));
 
-    lh_net_ip4_t loopback = lh_net_ip4_make(127, 0, 0, 1);
-    lh_net_ip4_socket_addr_t any = lh_net_ip4_socket_addr_make(&loopback, 0);
+    lh_net_ip4_t loopback;
+    lh_net_ip4_init(&loopback, 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t any;
+    lh_net_ip4_socket_addr_init(&any, &loopback, 0);
     ASSERT_TRUE(lh_os_net_socket_bind(&server, &any));
     ASSERT_TRUE(lh_os_net_socket_bind(&client, &any));
 
@@ -62,12 +66,14 @@ TEST_F(RaspadMasterUdpTest, query_returns_registered_server)
     ASSERT_TRUE(lh_os_net_socket_get_local_addr(&server, &server_addr));
     ASSERT_TRUE(lh_os_net_socket_get_local_addr(&client, &client_addr));
 
-    lh_io_dgram_t client_dgram = lh_os_net_socket_get_dgram(&client);
+    lh_io_dgram_t client_dgram;
+    lh_os_net_socket_get_dgram(&client, &client_dgram);
     unsigned char query[] = {0x31, 0xFF, '0', '.', '0', '.', '0', '.', '0', ':', '0', 0, 0};
     ASSERT_EQ(lh_io_dgram_send(&client_dgram, query, sizeof(query), &server_addr),
               static_cast<lh_ssize_t>(sizeof(query)));
 
-    lh_io_dgram_t server_dgram = lh_os_net_socket_get_dgram(&server);
+    lh_io_dgram_t server_dgram;
+    lh_os_net_socket_get_dgram(&server, &server_dgram);
     unsigned char incoming[256] = {};
     lh_net_ip4_socket_addr_t peer{};
     lh_ssize_t n = lh_io_dgram_recv(&server_dgram, incoming, sizeof(incoming), &peer);

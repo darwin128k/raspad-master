@@ -1,13 +1,13 @@
 #include <raspad/master/query.h>
-#include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/char.h>
-#include <lh/memory.h>
-#include <lh/net/ip.h>
-#include <lh/null.h>
-#include <lh/util/addr.h>
-#include <lh/util/bit/endian.h>
-#include <lh/util/ptr.h>
+#include <lh/core/assert.h>
+#include <lh/core/cast/static.h>
+#include <lh/core/char.h>
+#include <lh/core/memory.h>
+#include <lh/core/net/ip.h>
+#include <lh/core/null.h>
+#include <lh/core/util/addr.h>
+#include <lh/core/bit/endian.h>
+#include <lh/core/util/ptr.h>
 
 static const lh_uchar_t raspad_master_query_reply_header[RASPAD_MASTER_QUERY_REPLY_HEADER_SIZE] = {
     0xFFU, 0xFFU, 0xFFU, 0xFFU, 0x66U, 0x0AU};
@@ -28,7 +28,8 @@ raspad_master_query_is_list(const lh_ptr buf, lh_usize_t size)
 static void
 raspad_master_query_pack_addr(lh_uchar_t *out, const lh_net_ip4_socket_addr_t *addr)
 {
-    lh_net_ip4_t ip = lh_net_ip4_socket_addr_get_ip(addr);
+    lh_net_ip4_t ip;
+    lh_net_ip4_socket_addr_get_ip(addr, &ip);
     lh_net_port_t port = lh_net_ip4_socket_addr_get_port(addr);
 
     out[0] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_0);
@@ -99,8 +100,8 @@ raspad_master_query_read_reply_addr(const lh_ptr buf, lh_usize_t size, lh_usize_
     {
         return lh_bool_false;
     }
-    ip = lh_net_ip4_make(bytes[0], bytes[1], bytes[2], bytes[3]);
+    lh_net_ip4_init(&ip, bytes[0], bytes[1], bytes[2], bytes[3]);
     port = lh_bit_unpack_be16(bytes + 4);
-    *out = lh_net_ip4_socket_addr_make(lh_addr_of(ip), port);
+    lh_net_ip4_socket_addr_init(out, lh_addr_of(ip), port);
     return lh_bool_true;
 }

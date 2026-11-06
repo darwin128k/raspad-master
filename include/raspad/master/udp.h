@@ -8,13 +8,13 @@
 #ifndef RASPAD_MASTER_UDP_H
 #define RASPAD_MASTER_UDP_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/io/dgram.h>
-#include <lh/logger.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/io/dgram.h>
+#include <lh/core/logger.h>
+#include <lh/core/net/socket/addr/ip4.h>
+#include <lh/core/numeric/fixed/types.h>
+#include <lh/core/ptr.h>
+#include <lh/core/size.h>
 #include <raspad/master/config.h>
 #include <raspad/master/flood.h>
 #include <raspad/master/registry.h>

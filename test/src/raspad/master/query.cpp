@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <lh/net/ip.h>
-#include <lh/net/socket/addr/ip4.h>
+#include <lh/core/net/ip.h>
+#include <lh/core/net/socket/addr/ip4.h>
 #include <raspad/master/query.h>
 
 namespace
@@ -19,8 +19,10 @@ TEST(raspad_master_query, rejects_empty_and_wrong_opcode)
 
 TEST(raspad_master_query, write_reply_roundtrips_one_server)
 {
-    lh_net_ip4_t ip = lh_net_ip4_make(192, 168, 0, 1);
-    lh_net_ip4_socket_addr_t servers[1] = {lh_net_ip4_socket_addr_make(&ip, 27015)};
+    lh_net_ip4_t ip;
+    lh_net_ip4_init(&ip, 192, 168, 0, 1);
+    lh_net_ip4_socket_addr_t servers[1];
+    lh_net_ip4_socket_addr_init(&servers[0], &ip, 27015);
     unsigned char buf[64] = {};
     lh_usize_t n = raspad_master_query_write_reply(buf, sizeof(buf), servers, 1);
     ASSERT_EQ(n, RASPAD_MASTER_QUERY_REPLY_HEADER_SIZE + RASPAD_MASTER_QUERY_ADDR_SIZE * 2U);

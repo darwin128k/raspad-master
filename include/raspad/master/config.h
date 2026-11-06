@@ -10,12 +10,12 @@
 #ifndef RASPAD_MASTER_CONFIG_H
 #define RASPAD_MASTER_CONFIG_H
 
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/net/ip.h>
-#include <lh/net/port.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/size.h>
+#include <lh/core/char.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/net/ip.h>
+#include <lh/core/net/port.h>
+#include <lh/core/numeric/fixed/types.h>
+#include <lh/core/size.h>
 
 /**
  * @def RASPAD_MASTER_UDP_PORT

@@ -9,13 +9,31 @@
 #ifndef RASPAD_MASTER_LIST_FILE_H
 #define RASPAD_MASTER_LIST_FILE_H
 
-#include <lh/bool.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/bool.h>
+#include <lh/core/char.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/numeric/fixed/types.h>
+#include <lh/core/numeric/types.h>
 #include <raspad/master/registry.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Read the whole file @p path into @p buf.
+ *
+ * Opens @p path with ::lh_os_fs_file_open_cstr and calls ::lh_os_fs_file_read
+ * until end of file. The buffer is not terminated.
+ *
+ * @param path     File path.
+ * @param buf      Destination, @p capacity bytes.
+ * @param capacity Size of @p buf.
+ * @param size     Receives the number of bytes read (also on failure).
+ * @return ::lh_bool_true if the whole file was read; ::lh_bool_false if it
+ *         could not be opened or read, or is larger than @p capacity.
+ */
+lh_bool_t
+raspad_master_list_file_read(const lh_char_t *path, lh_char_t *buf, lh_usize_t capacity,
+                             lh_usize_t *size);
 
 /**
  * @brief Replace @p registry with entries from @p path.
