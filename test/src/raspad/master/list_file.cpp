@@ -37,6 +37,30 @@ TEST(raspad_master_list_file, loads_servers_object)
     std::remove(path);
 }
 
+TEST(raspad_master_list_file, loads_top_level_array)
+{
+    const char *path = "raspad_list_file_array.json";
+    FILE *f = std::fopen(path, "wb");
+    ASSERT_TRUE(f != nullptr);
+    const char json[] = "[{\"ip\":\"10.0.0.3\",\"port\":27017}]";
+    std::fwrite(json, 1, sizeof(json) - 1, f);
+    std::fclose(f);
+
+    raspad_master_registry_t registry;
+    raspad_master_registry_init(&registry, 8);
+    ASSERT_TRUE(raspad_master_list_file_load(path, &registry));
+    EXPECT_EQ(raspad_master_registry_get_size(&registry), 1U);
+    lh_net_ip4_t ip;
+    lh_net_ip4_init(&ip, 10, 0, 0, 3);
+    lh_net_ip4_socket_addr_t want;
+    lh_net_ip4_socket_addr_init(&want, &ip, 27017);
+    lh_net_ip4_socket_addr_t got{};
+    ASSERT_TRUE(raspad_master_registry_get(&registry, 0, &got));
+    EXPECT_TRUE(lh_net_ip4_socket_addr_equals(&got, &want));
+    raspad_master_registry_deinit(&registry);
+    std::remove(path);
+}
+
 TEST(raspad_master_list_file, rejects_bad_json)
 {
     const char *path = "raspad_list_file_bad.json";

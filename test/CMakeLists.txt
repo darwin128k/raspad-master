@@ -21,6 +21,7 @@ set(RASPAD_TEST_SOURCES
         src/raspad/master/flood.cpp
         src/raspad/master/list_file.cpp
         src/raspad/master/udp.cpp
+        src/raspad/master.cpp
 )
 
 add_executable(${PROJECT_NAME} ${RASPAD_TEST_SOURCES})

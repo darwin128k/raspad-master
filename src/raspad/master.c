@@ -71,8 +71,14 @@ raspad_master_bind(raspad_master_t *self)
     {
         return lh_bool_false;
     }
-    /* No SO_REUSEADDR: UDP has no TIME_WAIT to pass over, and the flag would let
-       another socket bind 27010 next to ours and read the queries. */
+    /* The query port is ours alone: no other socket may bind 27010 next to it
+       and read the queries. On Windows this is SO_EXCLUSIVEADDRUSE (a plain
+       socket there can still be shared by one asking for SO_REUSEADDR); on
+       POSIX it keeps SO_REUSEADDR off, since UDP has no TIME_WAIT to pass over. */
+    if (!lh_os_net_socket_set_exclusive_addr(lh_addr_of(self->udp), lh_bool_true))
+    {
+        return lh_bool_false;
+    }
     if (!lh_os_net_socket_bind(lh_addr_of(self->udp), lh_addr_of(udp_addr)))
     {
         return lh_bool_false;

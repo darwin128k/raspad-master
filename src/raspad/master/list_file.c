@@ -1,8 +1,8 @@
 #include <raspad/master/list_file.h>
-#include <cJSON.h>
 #include <lh/core/assert.h>
 #include <lh/core/cast/static.h>
 #include <lh/core/memory.h>
+#include <lh/core/memory/allocator.h>
 #include <lh/core/net/ip.h>
 #include <lh/core/net/port.h>
 #include <lh/core/net/socket/addr/ip4.h>
@@ -13,6 +13,9 @@
 #include <lh/os/system/fs/path.h>
 #include <lh/core/str/ptr.h>
 #include <lh/core/util/addr.h>
+#include <lh/core/runtime/allocator.h>
+#include <lh/core/web/json/node.h>
+#include <lh/core/web/json/reader.h>
 
 #define RASPAD_MASTER_LIST_FILE_MAX 65536U
 
@@ -80,55 +83,56 @@ raspad_master_list_file_read(const lh_char_t *path, lh_char_t *buf, lh_usize_t c
 }
 
 static lh_bool_t
-raspad_master_list_file_add_item(raspad_master_registry_t *registry, const cJSON *item)
+raspad_master_list_file_add_item(raspad_master_registry_t *registry, const lh_web_json_node_t *item)
 {
-    const cJSON *ip_json;
-    const cJSON *port_json;
+    lh_str_view_t ip_key;
+    lh_str_view_t port_key;
     lh_net_ip4_t ip;
-    lh_net_port_t port;
+    lh_ullong_t port_value;
     lh_net_ip4_socket_addr_t addr;
-    double port_value;
 
-    if (!cJSON_IsObject(item))
+    if (!lh_web_json_node_has_kind(item, lh_web_json_kind_object))
     {
         return lh_bool_false;
     }
-    ip_json = cJSON_GetObjectItemCaseSensitive(item, "ip");
-    port_json = cJSON_GetObjectItemCaseSensitive(item, "port");
-    if (!cJSON_IsString(ip_json) || !cJSON_IsNumber(port_json))
+    lh_str_view_init(lh_addr_of(ip_key), "ip");
+    lh_str_view_init(lh_addr_of(port_key), "port");
+    const lh_web_json_node_t *ip_json = lh_web_json_node_get_member(item, ip_key);
+    const lh_web_json_node_t *port_json = lh_web_json_node_get_member(item, port_key);
+    if (lh_null_eq(ip_json) || !lh_web_json_node_has_kind(ip_json, lh_web_json_kind_string) ||
+        lh_null_eq(port_json) || !lh_web_json_node_get_uint(port_json, lh_addr_of(port_value)))
     {
         return lh_bool_false;
     }
-    if (!lh_net_ip4_parse(ip_json->valuestring, lh_str_ptr_len(ip_json->valuestring),
-                          lh_addr_of(ip)))
+    const lh_str_view_t ip_text = lh_web_json_node_get_str(ip_json);
+    if (!lh_net_ip4_parse(lh_str_view_get_begin(lh_addr_of(ip_text)),
+                          lh_str_view_get_size(lh_addr_of(ip_text)), lh_addr_of(ip)))
     {
         return lh_bool_false;
     }
-    port_value = port_json->valuedouble;
-    if (port_value < 1 || port_value > LH_NET_PORT_MAX)
+    if (port_value < 1U || port_value > LH_NET_PORT_MAX)
     {
         return lh_bool_false;
     }
-    port = lh_cast_static(lh_net_port_t, port_value);
-    lh_net_ip4_socket_addr_init(&addr, lh_addr_of(ip), port);
+    lh_net_ip4_socket_addr_init(&addr, lh_addr_of(ip), lh_cast_static(lh_net_port_t, port_value));
     return raspad_master_registry_add(registry, lh_addr_of(addr));
 }
 
 lh_bool_t
 raspad_master_list_file_load(const lh_char_t *path, raspad_master_registry_t *registry)
 {
-    lh_char_t *text;
     lh_usize_t size;
-    cJSON *root;
-    cJSON *servers;
-    cJSON *item;
+    lh_str_view_t view;
+    lh_web_json_reader_t reader;
+    lh_web_json_node_t root;
     raspad_master_registry_t next;
     lh_bool_t ok;
 
     lh_assert_runtime_ref(path);
     lh_assert_runtime_ref(registry);
 
-    text = (lh_char_t *)cJSON_malloc(RASPAD_MASTER_LIST_FILE_MAX + 1U);
+    lh_memory_allocator_t *allocator = lh_runtime_allocator_get_mut();
+    lh_char_t *text = (lh_char_t *)lh_memory_allocator_try_alloc(allocator, RASPAD_MASTER_LIST_FILE_MAX);
     if (lh_null_eq(text))
     {
         return lh_bool_false;
@@ -136,33 +140,40 @@ raspad_master_list_file_load(const lh_char_t *path, raspad_master_registry_t *re
     if (!raspad_master_list_file_read(path, text, RASPAD_MASTER_LIST_FILE_MAX, lh_addr_of(size)) ||
         size == 0U)
     {
-        cJSON_free(text);
+        lh_memory_allocator_dealloc(allocator, text);
         return lh_bool_false;
     }
-    text[size] = '\0';
-    root = cJSON_Parse(text);
-    cJSON_free(text);
-    if (lh_null_eq(root))
+    lh_str_view_init_by_size(lh_addr_of(view), text, size);
+    lh_web_json_node_init(lh_addr_of(root));
+    lh_web_json_reader_init(lh_addr_of(reader), view);
+    ok = lh_web_json_reader_read(lh_addr_of(reader), lh_addr_of(root));
+    lh_memory_allocator_dealloc(allocator, text);
+
+    /* A top-level array, or {"servers":[...]}. */
+    const lh_web_json_node_t *servers = lh_null;
+    if (ok)
     {
-        return lh_bool_false;
-    }
-    if (cJSON_IsArray(root))
-    {
-        servers = root;
-    }
-    else
-    {
-        servers = cJSON_GetObjectItemCaseSensitive(root, "servers");
-        if (!cJSON_IsArray(servers))
+        if (lh_web_json_node_has_kind(lh_addr_of(root), lh_web_json_kind_array))
         {
-            cJSON_Delete(root);
-            return lh_bool_false;
+            servers = lh_addr_of(root);
         }
+        else
+        {
+            lh_str_view_t servers_key;
+            lh_str_view_init(lh_addr_of(servers_key), "servers");
+            servers = lh_web_json_node_get_member(lh_addr_of(root), servers_key);
+            ok = lh_null_ne(servers) && lh_web_json_node_has_kind(servers, lh_web_json_kind_array);
+        }
+    }
+    if (!ok)
+    {
+        lh_web_json_node_deinit(lh_addr_of(root));
+        return lh_bool_false;
     }
 
     raspad_master_registry_init(lh_addr_of(next), registry->max_servers);
-    ok = lh_bool_true;
-    cJSON_ArrayForEach(item, servers)
+    for (const lh_web_json_node_t *item = lh_web_json_node_get_first(servers); lh_null_ne(item);
+         item = lh_web_json_node_get_next(servers, item))
     {
         if (!raspad_master_list_file_add_item(lh_addr_of(next), item))
         {
@@ -173,20 +184,17 @@ raspad_master_list_file_load(const lh_char_t *path, raspad_master_registry_t *re
     if (ok)
     {
         raspad_master_registry_clear(registry);
+        lh_usize_t count = raspad_master_registry_get_size(lh_addr_of(next));
+        for (lh_usize_t i = 0; i < count; ++i)
         {
-            lh_usize_t i;
-            lh_usize_t count = raspad_master_registry_get_size(lh_addr_of(next));
-            for (i = 0; i < count; ++i)
+            lh_net_ip4_socket_addr_t addr;
+            if (raspad_master_registry_get(lh_addr_of(next), i, lh_addr_of(addr)))
             {
-                lh_net_ip4_socket_addr_t addr;
-                if (raspad_master_registry_get(lh_addr_of(next), i, lh_addr_of(addr)))
-                {
-                    (void)raspad_master_registry_add(registry, lh_addr_of(addr));
-                }
+                (void)raspad_master_registry_add(registry, lh_addr_of(addr));
             }
         }
     }
     raspad_master_registry_deinit(lh_addr_of(next));
-    cJSON_Delete(root);
+    lh_web_json_node_deinit(lh_addr_of(root));
     return ok;
 }
