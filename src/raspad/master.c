@@ -1,15 +1,15 @@
 #include <raspad/master.h>
-#include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/char.h>
-#include <lh/compiler/os.h>
-#include <lh/io/dgram.h>
-#include <lh/net/ip.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/null.h>
-#include <lh/numeric/types.h>
-#include <lh/os/clock.h>
-#include <lh/util/addr.h>
+#include <lh/core/assert.h>
+#include <lh/core/cast/static.h>
+#include <lh/core/char.h>
+#include <lh/core/compiler/os.h>
+#include <lh/core/io/dgram.h>
+#include <lh/core/net/ip.h>
+#include <lh/core/net/socket/addr/ip4.h>
+#include <lh/core/null.h>
+#include <lh/core/numeric/types.h>
+#include <lh/os/tick.h>
+#include <lh/core/util/addr.h>
 #include <raspad/master/list_file.h>
 #include <raspad/master/udp.h>
 
@@ -65,9 +65,9 @@ raspad_master_bind(raspad_master_t *self)
 
     lh_assert_runtime_ref(self);
 
-    udp_addr = lh_net_ip4_socket_addr_make(lh_addr_of(self->config.bind_ip), self->config.udp_port);
+    lh_net_ip4_socket_addr_init(&udp_addr, lh_addr_of(self->config.bind_ip), self->config.udp_port);
 
-    if (!lh_os_net_socket_open(lh_addr_of(self->udp), lh_os_net_socket_type_udp))
+    if (!lh_os_net_socket_open(lh_addr_of(self->udp), lh_os_system_net_socket_type_udp))
     {
         return lh_bool_false;
     }
@@ -94,14 +94,14 @@ raspad_master_on_udp(raspad_master_t *self)
     lh_io_dgram_t dgram;
     lh_ssize_t n;
 
-    dgram = lh_os_net_socket_get_dgram(lh_addr_of(self->udp));
+    lh_os_net_socket_get_dgram(lh_addr_of(self->udp), &dgram);
     n = lh_io_dgram_recv(lh_addr_of(dgram), buf, sizeof(buf), lh_addr_of(peer));
     if (n <= 0)
     {
         return;
     }
     raspad_master_udp_handle(lh_addr_of(dgram), lh_addr_of(self->registry), lh_addr_of(self->flood),
-                             buf, lh_cast_static(lh_usize_t, n), lh_addr_of(peer), lh_os_clock_ms(),
+                             buf, lh_cast_static(lh_usize_t, n), lh_addr_of(peer), lh_os_tick_ms64(),
                              lh_addr_of(self->config), self->logger);
 }
 

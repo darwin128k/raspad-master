@@ -8,11 +8,11 @@
 #ifndef RASPAD_MASTER_QUERY_H
 #define RASPAD_MASTER_QUERY_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/net/socket/addr/ip4.h>
+#include <lh/core/ptr.h>
+#include <lh/core/size.h>
 
 /**
  * @def RASPAD_MASTER_QUERY_OPCODE

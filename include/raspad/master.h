@@ -10,10 +10,10 @@
 #ifndef RASPAD_MASTER_H
 #define RASPAD_MASTER_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/logger.h>
-#include <lh/numeric/fixed/types.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/logger.h>
+#include <lh/core/numeric/fixed/types.h>
 #include <lh/os/net/socket.h>
 #include <raspad/master/config.h>
 #include <raspad/master/flood.h>

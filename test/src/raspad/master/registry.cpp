@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <lh/net/ip.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/util/addr.h>
+#include <lh/core/net/ip.h>
+#include <lh/core/net/socket/addr/ip4.h>
+#include <lh/core/util/addr.h>
 #include <raspad/master/registry.h>
 
 namespace
@@ -11,8 +11,11 @@ namespace
 lh_net_ip4_socket_addr_t
 Addr(lh_u8_t a, lh_u8_t b, lh_u8_t c, lh_u8_t d, lh_net_port_t port)
 {
-    lh_net_ip4_t ip = lh_net_ip4_make(a, b, c, d);
-    return lh_net_ip4_socket_addr_make(&ip, port);
+    lh_net_ip4_t ip;
+    lh_net_ip4_init(&ip, a, b, c, d);
+    lh_net_ip4_socket_addr_t addr;
+    lh_net_ip4_socket_addr_init(&addr, &ip, port);
+    return addr;
 }
 
 TEST(raspad_master_registry, add_get_count)

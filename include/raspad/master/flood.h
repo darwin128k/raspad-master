@@ -9,12 +9,12 @@
 #ifndef RASPAD_MASTER_FLOOD_H
 #define RASPAD_MASTER_FLOOD_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/net/ip.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/size.h>
-#include <lh/vector.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/net/ip.h>
+#include <lh/core/numeric/fixed/types.h>
+#include <lh/core/size.h>
+#include <lh/core/array.h>
 
 /**
  * @struct raspad_master_flood_slot
@@ -35,7 +35,7 @@ typedef struct raspad_master_flood_slot raspad_master_flood_slot_t;
  */
 struct raspad_master_flood
 {
-    lh_vector_t slots;     /**< Elements are ::raspad_master_flood_slot_t. */
+    lh_array_t slots;     /**< Elements are ::raspad_master_flood_slot_t. */
     lh_u32_t max_hits;     /**< Allowed hits per ::window_ms. */
     lh_u64_t window_ms;    /**< Window length. */
     lh_usize_t max_slots;  /**< Cap; the oldest slot is evicted when full. */

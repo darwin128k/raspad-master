@@ -4,8 +4,8 @@
 #include <cstring>
 #include <string>
 
-#include <lh/net/ip.h>
-#include <lh/net/socket/addr/ip4.h>
+#include <lh/core/net/ip.h>
+#include <lh/core/net/socket/addr/ip4.h>
 #include <raspad/master/list_file.h>
 #include <raspad/master/registry.h>
 
@@ -26,8 +26,10 @@ TEST(raspad_master_list_file, loads_servers_object)
     raspad_master_registry_init(&registry, 8);
     ASSERT_TRUE(raspad_master_list_file_load(path, &registry));
     EXPECT_EQ(raspad_master_registry_get_size(&registry), 2U);
-    lh_net_ip4_t ip = lh_net_ip4_make(10, 0, 0, 1);
-    lh_net_ip4_socket_addr_t want = lh_net_ip4_socket_addr_make(&ip, 27015);
+    lh_net_ip4_t ip;
+    lh_net_ip4_init(&ip, 10, 0, 0, 1);
+    lh_net_ip4_socket_addr_t want;
+    lh_net_ip4_socket_addr_init(&want, &ip, 27015);
     lh_net_ip4_socket_addr_t got{};
     ASSERT_TRUE(raspad_master_registry_get(&registry, 0, &got));
     EXPECT_TRUE(lh_net_ip4_socket_addr_equals(&got, &want));
@@ -46,8 +48,10 @@ TEST(raspad_master_list_file, rejects_bad_json)
 
     raspad_master_registry_t registry;
     raspad_master_registry_init(&registry, 8);
-    lh_net_ip4_t ip = lh_net_ip4_make(1, 2, 3, 4);
-    lh_net_ip4_socket_addr_t keep = lh_net_ip4_socket_addr_make(&ip, 1);
+    lh_net_ip4_t ip;
+    lh_net_ip4_init(&ip, 1, 2, 3, 4);
+    lh_net_ip4_socket_addr_t keep;
+    lh_net_ip4_socket_addr_init(&keep, &ip, 1);
     ASSERT_TRUE(raspad_master_registry_add(&registry, &keep));
     EXPECT_FALSE(raspad_master_list_file_load(path, &registry));
     EXPECT_EQ(raspad_master_registry_get_size(&registry), 1U);

@@ -1,15 +1,18 @@
 #include <raspad/master/list_file.h>
 #include <cJSON.h>
-#include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/memory.h>
-#include <lh/net/ip.h>
-#include <lh/net/port.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/null.h>
+#include <lh/core/assert.h>
+#include <lh/core/cast/static.h>
+#include <lh/core/memory.h>
+#include <lh/core/net/ip.h>
+#include <lh/core/net/port.h>
+#include <lh/core/net/socket/addr/ip4.h>
+#include <lh/core/null.h>
+#include <lh/os/fs/file.h>
 #include <lh/os/fs/path.h>
-#include <lh/str/ptr.h>
-#include <lh/util/addr.h>
+#include <lh/os/fs/stat.h>
+#include <lh/os/system/fs/path.h>
+#include <lh/core/str/ptr.h>
+#include <lh/core/util/addr.h>
 
 #define RASPAD_MASTER_LIST_FILE_MAX 65536U
 
@@ -22,11 +25,58 @@ raspad_master_list_file_mtime(const lh_char_t *path)
     {
         return 0;
     }
-    if (!lh_os_fs_path_mtime(path, lh_addr_of(mtime)))
+    lh_fs_path_t parsed;
+    lh_str_view_t view;
+    lh_fs_path_init(&parsed);
+    lh_str_view_init(&view, path);
+    lh_fs_path_set(&parsed, view, lh_os_system_fs_path_style_native());
+    lh_bool_t ok = lh_os_fs_mtime(&parsed, &mtime);
+    lh_fs_path_deinit(&parsed);
+    return ok ? mtime : 0;
+}
+
+lh_bool_t
+raspad_master_list_file_read(const lh_char_t *path, lh_char_t *buf, lh_usize_t capacity,
+                             lh_usize_t *size)
+{
+    lh_os_fs_file_t file;
+    lh_usize_t used = 0U;
+    lh_bool_t ok = lh_bool_false;
+
+    lh_os_fs_file_init(lh_addr_of(file));
+    if (lh_os_fs_file_open_cstr(lh_addr_of(file), path, lh_fs_file_mode_read))
     {
-        return 0;
+        for (;;)
+        {
+            lh_char_t probe;
+            lh_ssize_t got;
+
+            if (used < capacity)
+            {
+                got = lh_os_fs_file_read(lh_addr_of(file), buf + used, capacity - used);
+            }
+            else
+            {
+                /* Buffer full: the file fits only if nothing is left to read. */
+                got = lh_os_fs_file_read(lh_addr_of(file), lh_addr_of(probe), 1U);
+                ok = got == 0;
+                break;
+            }
+            if (got < 0)
+            {
+                break;
+            }
+            if (got == 0)
+            {
+                ok = lh_bool_true;
+                break;
+            }
+            used += lh_cast_static(lh_usize_t, got);
+        }
     }
-    return mtime;
+    lh_os_fs_file_deinit(lh_addr_of(file));
+    *size = used;
+    return ok;
 }
 
 static lh_bool_t
@@ -60,7 +110,7 @@ raspad_master_list_file_add_item(raspad_master_registry_t *registry, const cJSON
         return lh_bool_false;
     }
     port = lh_cast_static(lh_net_port_t, port_value);
-    addr = lh_net_ip4_socket_addr_make(lh_addr_of(ip), port);
+    lh_net_ip4_socket_addr_init(&addr, lh_addr_of(ip), port);
     return raspad_master_registry_add(registry, lh_addr_of(addr));
 }
 
@@ -83,7 +133,7 @@ raspad_master_list_file_load(const lh_char_t *path, raspad_master_registry_t *re
     {
         return lh_bool_false;
     }
-    if (!lh_os_fs_path_read(path, text, RASPAD_MASTER_LIST_FILE_MAX, lh_addr_of(size)) ||
+    if (!raspad_master_list_file_read(path, text, RASPAD_MASTER_LIST_FILE_MAX, lh_addr_of(size)) ||
         size == 0U)
     {
         cJSON_free(text);

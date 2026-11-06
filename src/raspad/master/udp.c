@@ -1,13 +1,13 @@
 #include <raspad/master/udp.h>
-#include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/char.h>
-#include <lh/logger.h>
-#include <lh/net/ip.h>
-#include <lh/null.h>
-#include <lh/numeric/types.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
+#include <lh/core/assert.h>
+#include <lh/core/cast/static.h>
+#include <lh/core/char.h>
+#include <lh/core/logger.h>
+#include <lh/core/net/ip.h>
+#include <lh/core/null.h>
+#include <lh/core/numeric/types.h>
+#include <lh/core/util/addr.h>
+#include <lh/core/util/ptr.h>
 #include <raspad/master/query.h>
 
 static void
@@ -56,7 +56,7 @@ raspad_master_udp_handle(lh_io_dgram_t *dgram, raspad_master_registry_t *registr
         }
         return;
     }
-    peer_ip = lh_net_ip4_socket_addr_get_ip(peer);
+    lh_net_ip4_socket_addr_get_ip(peer, &peer_ip);
     if (!raspad_master_flood_allow(flood, lh_addr_of(peer_ip), now_ms))
     {
         if (lh_null_ne(logger))

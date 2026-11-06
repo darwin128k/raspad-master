@@ -9,11 +9,11 @@
 #ifndef RASPAD_MASTER_REGISTRY_H
 #define RASPAD_MASTER_REGISTRY_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/size.h>
-#include <lh/vector.h>
+#include <lh/core/bool.h>
+#include <lh/core/compiler/extern/c.h>
+#include <lh/core/net/socket/addr/ip4.h>
+#include <lh/core/size.h>
+#include <lh/core/array.h>
 
 /**
  * @struct raspad_master_registry
@@ -22,7 +22,7 @@
  */
 struct raspad_master_registry
 {
-    lh_vector_t servers;   /**< Elements are ::lh_net_ip4_socket_addr_t. */
+    lh_array_t servers;   /**< Elements are ::lh_net_ip4_socket_addr_t. */
     lh_usize_t max_servers; /**< ::raspad_master_registry_add refuses past this. */
 };
 typedef struct raspad_master_registry raspad_master_registry_t;
